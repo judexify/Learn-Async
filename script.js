@@ -183,30 +183,30 @@ const getPosition = () => {
   });
 };
 
-const whereAmI = (lat, lng) => {
-  getPosition()
-    .then(pos => {
-      const { latitude: lat, longitude: lng } = pos.coords;
-      return fetch(
-        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}`,
-      );
-    })
-    .then(response => {
-      if (!response.ok) throw new Error(`${response.status}`);
-      return response.json();
-    })
-    .then(data => {
-      console.log(data);
-      console.log(`You are in ${data.city}, ${data.countryName}`);
-      return fetch(`https://restcountries.com/v2/name/${data.countryName}`);
-    })
-    .then(res => {
-      if (!res.ok) throw new Error(`Country not found (${res.status})`);
-      return res.json();
-    })
-    .then(data => renderCountry(data[0]))
-    .catch(err => console.error(`${err.message} 💥💥💥`));
-};
+// const whereAmI = (lat, lng) => {
+//   getPosition()
+//     .then(pos => {
+//       const { latitude: lat, longitude: lng } = pos.coords;
+//       return fetch(
+//         `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}`,
+//       );
+//     })
+//     .then(response => {
+//       if (!response.ok) throw new Error(`${response.status}`);
+//       return response.json();
+//     })
+//     .then(data => {
+//       console.log(data);
+//       console.log(`You are in ${data.city}, ${data.countryName}`);
+//       return fetch(`https://restcountries.com/v2/name/${data.countryName}`);
+//     })
+//     .then(res => {
+//       if (!res.ok) throw new Error(`Country not found (${res.status})`);
+//       return res.json();
+//     })
+//     .then(data => renderCountry(data[0]))
+//     .catch(err => console.error(`${err.message} 💥💥💥`));
+// };
 
 // btn.addEventListener('click', whereAmI);
 
@@ -217,39 +217,63 @@ const whereAmI = (lat, lng) => {
 //   });
 // };
 
-const createImage = imagePath => {
-  return new Promise((resolve, reject) => {
-    const newImage = document.createElement('img');
-    newImage.src = imagePath;
+// const createImage = imagePath => {
+//   return new Promise((resolve, reject) => {
+//     const newImage = document.createElement('img');
+//     newImage.src = imagePath;
 
-    const imageDiv = document.querySelector('.images');
-    if (imageDiv) {
-      newImage.addEventListener('load', () => {
-        imageDiv.appendChild(newImage);
-      });
-    }
-    resolve(newImage);
+//     const imageDiv = document.querySelector('.images');
+//     if (imageDiv) {
+//       newImage.addEventListener('load', () => {
+//         imageDiv.appendChild(newImage);
+//       });
+//     }
+//     resolve(newImage);
 
-    newImage.addEventListener('error', () => {
-      reject(new Error('Image not found...'));
-    });
-  });
+//     newImage.addEventListener('error', () => {
+//       reject(new Error('Image not found...'));
+//     });
+//   });
+// };
+
+// let currentImg;
+// createImage('/img/img-1.jpg')
+//   .then(img => {
+//     currentImg = img;
+//     console.log('Image 1 Loaded....');
+//     return wait(2);
+//   })
+//   .then(() => {
+//     currentImg.style.display = 'none';
+//     return createImage('/img/img-2.jpg');
+//   })
+//   .then(img => {
+//     currentImg = img;
+//     console.log('Image 2 Loaded....');
+//     return wait(2);
+//   })
+//   .catch(err => console.error(err));
+
+// consuming promises with async await
+
+const whereAmI = async country => {
+  try {
+    const res = await fetch(`https://restcountries.com/v2/name/${country}`);
+    const data = await res.json();
+    console.log(data);
+    renderCountry(data[0]);
+  } catch (err) {
+    console.log(err.message);
+  }
 };
 
-let currentImg;
-createImage('/img/img-1.jpg')
-  .then(img => {
-    currentImg = img;
-    console.log('Image 1 Loaded....');
-    return wait(2);
-  })
-  .then(() => {
-    currentImg.style.display = 'none';
-    return createImage('/img/img-2.jpg');
-  })
-  .then(img => {
-    currentImg = img;
-    console.log('Image 2 Loaded....');
-    return wait(2);
-  })
-  .catch(err => console.error(err));
+whereAmI('portugal');
+console.log('first...');
+
+// try {
+//   let y = 1;
+//   const x = 2;
+//   x = 3;
+// } catch (err) {
+//   alert(err.message);
+// }
