@@ -79,16 +79,16 @@ const renderCountry = function (data, className = '') {
 // };
 // getCountryData('portugal');
 
-// const renderError = function (msg) {
-//   countriesContainer.insertAdjacentText('beforeend', msg);
-// };
+const renderError = function (msg) {
+  countriesContainer.insertAdjacentText('beforeend', msg);
+};
 
-// const getJSON = function (url, errorMsg = 'Something Went Wrong') {
-//   return fetch(url).then(response => {
-//     if (!response.ok) throw new Error(`${errorMsg} (${response.status})`);
-//     return response.json();
-//   });
-// };
+const getJSON = function (url, errorMsg = 'Something Went Wrong') {
+  return fetch(url).then(response => {
+    if (!response.ok) throw new Error(`${errorMsg} (${response.status})`);
+    return response.json();
+  });
+};
 
 // const getCountryData = country => {
 //   // prettier-ignore
@@ -177,11 +177,11 @@ const wait = function (seconds) {
 
 // console.log('getting position....');
 
-const getPosition = () => {
-  return new Promise(function (resolve, reject) {
-    navigator.geolocation.getCurrentPosition(resolve, reject);
-  });
-};
+// const getPosition = () => {
+//   return new Promise(function (resolve, reject) {
+//     navigator.geolocation.getCurrentPosition(resolve, reject);
+//   });
+// };
 
 // const whereAmI = (lat, lng) => {
 //   getPosition()
@@ -255,25 +255,84 @@ const getPosition = () => {
 //   .catch(err => console.error(err));
 
 // consuming promises with async await
+const getPosition = () => {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
 
-const whereAmI = async country => {
+const whereAmI = async () => {
   try {
-    const res = await fetch(`https://restcountries.com/v2/name/${country}`);
+    // GeoLoCATION
+    const pos = await getPosition();
+    const { latitude: lat, longitude: lng } = pos.coords;
+
+    // Reverse GeoCoding
+    const resGeo = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}`,
+    );
+    if (!resGeo.ok) throw new Error('Problem getting location data');
+    const dataGeo = await resGeo.json();
+
+    // country data
+    const res = await fetch(
+      `https://restcountries.com/v2/name/${dataGeo.countryName}`,
+    );
+    if (!res.ok) throw new Error('Problem getting country');
+
     const data = await res.json();
-    console.log(data);
+
     renderCountry(data[0]);
+
+    return `You are in ${dataGeo.city}`;
   } catch (err) {
-    console.log(err.message);
+    console.error(err);
+    renderError(`Something went wrong 💥💥 ${err.message}`);
+
+    // reject prmise returned
+    throw err;
   }
 };
 
-whereAmI('portugal');
-console.log('first...');
+// console.log('1: will get location');
 
-// try {
-//   let y = 1;
-//   const x = 2;
-//   x = 3;
-// } catch (err) {
-//   alert(err.message);
-// }
+// console.log('3: finished getting location');
+
+// Returning values from async functions
+
+// async always returns a promise not the value we'd like to get
+// the value returned will become the fufilled value of the promise
+// then we use "then" to get the fufilled value
+// whereAmI()
+//   .then(city => console.log(city))
+//   .catch(err => console.error(`${err.message}`))
+//   .finally(() => console.log('3: Finised getting location'));
+
+// (async () => {
+//   try {
+//     const res2 = await whereAmI();
+//     console.log(res2);
+//   } catch (err) {
+//     console.error(`${err.message}`);
+//   }
+// })();
+
+// running promises in parallel
+const get3Countries = async function (c1, c2, c3) {
+  try {
+    // const [data1] = await getJSON(`https://restcountries.com/v2/name/${c1}`);
+    // const [data2] = await getJSON(`https://restcountries.com/v2/name/${c2}`);
+    // const [data3] = await getJSON(`https://restcountries.com/v2/name/${c3}`);
+    // console.log([data1.capital, data2.capital, data3.capital]);
+    const data = await Promise.all([
+      getJSON(`https://restcountries.com/v2/name/${c1}`),
+      getJSON(`https://restcountries.com/v2/name/${c2}`),
+      getJSON(`https://restcountries.com/v2/name/${c3}`),
+    ]);
+    console.log(data.map(d => d[0].capital));
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+get3Countries('portugal', 'canada', 'nigeria');
